@@ -4,7 +4,7 @@ import {
 	listarAgendamentos,
 	removerAgendamentosAntigos,
 } from "../services/agendamentoService";
-import { Agendamento } from "../models/agendamento";
+import { Agendamento, StatusAgendamento } from "../models/agendamento";
 import { addDays } from "date-fns";
 
 describe("Agendamento Service", () => {
@@ -18,7 +18,8 @@ describe("Agendamento Service", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT123",
 			dataHora: new Date("2024-09-15T10:00:00Z"),
-			status: "pendente",
+			status: StatusAgendamento.PENDENTE,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 	});
 
@@ -83,7 +84,8 @@ describe("Agendamento Service - Filtros", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT123",
 			dataHora: new Date("2024-09-15T10:00:00Z"),
-			status: "pendente",
+			status: StatusAgendamento.PENDENTE,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		agendamento2 = {
@@ -93,7 +95,8 @@ describe("Agendamento Service - Filtros", () => {
 			placaCaminhao: "XYZ-5678",
 			numeroContrato: "CT456",
 			dataHora: new Date("2024-09-16T11:00:00Z"),
-			status: "concluido",
+			status: StatusAgendamento.CONCLUIDO,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		agendamento3 = {
@@ -103,7 +106,8 @@ describe("Agendamento Service - Filtros", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT789",
 			dataHora: new Date("2024-09-17T12:00:00Z"),
-			status: "atrasado",
+			status: StatusAgendamento.CONCLUIDO,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		criarAgendamento(agendamento1);
@@ -167,7 +171,8 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 			placaCaminhao: "ABC-1234",
 			numeroContrato: "CT123",
 			dataHora: addDays(new Date(), -4), // Agendamento com 4 dias atrás
-			status: "pendente",
+			status: StatusAgendamento.PENDENTE,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		agendamento2 = {
@@ -177,7 +182,8 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 			placaCaminhao: "XYZ-5678",
 			numeroContrato: "CT456",
 			dataHora: addDays(new Date(), -2), // Agendamento com 2 dias atrás
-			status: "concluido",
+			status: StatusAgendamento.CONCLUIDO,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		agendamento3 = {
@@ -187,7 +193,8 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 			placaCaminhao: "JKL-9101",
 			numeroContrato: "CT789",
 			dataHora: new Date(), // Agendamento de hoje
-			status: "atrasado",
+			status: StatusAgendamento.ATRASADO,
+			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
 		criarAgendamento(agendamento1);

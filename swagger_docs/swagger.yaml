@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  title: API de Agendamento
+  version: 1.0.0
+  description: Documentação da API de Agendamento
+paths:
+  /api/agendamentos:
+    post:
+      summary: Cria um novo agendamento
+      description: |
+        Cria um agendamento com status inicial `pendente`.
+        Regras:
+        - Não é possível agendar mais de um motorista por hora.
+        - Motoristas com agendamentos `pendente` ou `atrasado` não podem receber novos agendamentos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgendamentoCreate'
+            example:
+              dataHora: "2024-09-15T10:00:00Z"
+              numeroContrato: "CT123"
+              motoristaNome: "João"
+              motoristaCpf: "12345678900"
+              placaCaminhao: "ABC-1234"
+      responses:
+        201:
+          description: Agendamento criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agendamento'
+        400:
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    get:
+      summary: Lista agendamentos com filtros opcionais
+      description: |
+        Lista todos os agendamentos. Permite filtrar por data (apenas o dia), status e CPF do motorista.
+      parameters:
+        - in: query
+          name: data
+          schema:
+            type: string
+            format: date
+          description: Filtrar por data (YYYY-MM-DD)
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pendente, concluido, atrasado, cancelado]
+          description: Filtrar por status
+        - in: query
+          name: motoristaCpf
+          schema:
+            type: string
+          description: Filtrar por CPF do motorista
+      responses:
+        200:
+          description: Lista de agendamentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agendamento'
+  /api/agendamentos/{id}/status:
+    patch:
+      summary: Altera o status de um agendamento
+      description: |
+        Altera o status de um agendamento para `concluido` ou `cancelado`.
+        Regras:
+        - Não é possível alterar o status de um agendamento `concluido` para `cancelado`.
+        - Não é possível alterar o status de um agendamento `cancelado`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [concluido, cancelado]
+            example:
+              status: concluido
+      responses:
+        200:
+          description: Status alterado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agendamento'
+        400:
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /api/agendamentos/antigos:
+    delete:
+      summary: Exclui agendamentos com mais de 3 dias
+      description: Exclui todos os agendamentos que possuem mais de 3 dias de idade.
+      responses:
+        200:
+          description: Mensagem de sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: Agendamentos com mais de 3 dias foram removidos
+components:
+  schemas:
+    Agendamento:
+      type: object
+      properties:
+        id:
+          type: string
+        dataHora:
+          type: string
+          format: date-time
+        numeroContrato:
+          type: string
+        motoristaNome:
+          type: string
+        motoristaCpf:
+          type: string
+        placaCaminhao:
+          type: string
+        status:
+          type: string
+          enum: [pendente, concluido, atrasado, cancelado]
+        createdAt:
+          type: string
+          format: date-time
+    AgendamentoCreate:
+      type: object
+      required:
+        - dataHora
+        - numeroContrato
+        - motoristaNome
+        - motoristaCpf
+        - placaCaminhao
+      properties:
+        dataHora:
+          type: string
+          format: date-time
+        numeroContrato:
+          type: string
+        motoristaNome:
+          type: string
+        motoristaCpf:
+          type: string
+        placaCaminhao:
+          type: string 

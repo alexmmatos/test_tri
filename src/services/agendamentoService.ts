@@ -1,11 +1,11 @@
-import { AppDataSource } from '../data-source';
+import { AppDatabase } from '../database';
 import { Agendamento, StatusAgendamento } from '../models/agendamento';
 import { subDays } from 'date-fns';
 import { Repository, In } from 'typeorm';
 
 export class AgendamentoService {
 	private static repo(): Repository<Agendamento> {
-		return AppDataSource.getRepository(Agendamento);
+		return AppDatabase.getRepository(Agendamento);
 	}
 
 	static async criarAgendamento(dados: Omit<Agendamento, 'id' | 'status' | 'createdAt'>): Promise<Agendamento> {
@@ -42,13 +42,25 @@ export class AgendamentoService {
 	static async listarAgendamentos(filtros: { data?: string; status?: StatusAgendamento; motoristaCpf?: string }): Promise<Agendamento[]> {
 		const repo = this.repo();
 		const where: any = {};
-		if (filtros.data) where.dataHora = filtros.data;
 		if (filtros.status) where.status = filtros.status;
 		if (filtros.motoristaCpf) where.motoristaCpf = filtros.motoristaCpf;
-		return repo.find({ where });
+
+		let agendamentos = await repo.find({ where });
+
+		if (filtros.data) {
+			const dataFiltro = new Date(filtros.data);
+			agendamentos = agendamentos.filter(a => {
+				const dataAgendamento = new Date(a.dataHora);
+				return dataAgendamento.getFullYear() === dataFiltro.getFullYear() &&
+					dataAgendamento.getMonth() === dataFiltro.getMonth() &&
+					dataAgendamento.getDate() === dataFiltro.getDate();
+			});
+		}
+
+		return agendamentos;
 	}
 
-	static async excluirAntigos(): Promise<number> {
+	static async removerAgendamentosAntigos(): Promise<number> {
 		const repo = this.repo();
 		const limite = subDays(new Date(), 3);
 		const antigos = await repo.find({ where: { createdAt: { $lt: limite } } as any });

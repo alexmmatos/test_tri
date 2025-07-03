@@ -38,7 +38,7 @@ export class AgendamentoController {
 
 	static async excluirAntigos(req: Request, res: Response) {
 		try {
-			const removidos = await AgendamentoService.excluirAntigos();
+			const removidos = await AgendamentoService.removerAgendamentosAntigos();
 			res.json({ message: `Agendamentos com mais de 3 dias foram removidos (${removidos})` });
 		} catch (e: any) {
 			res.status(400).json({ error: e.message });
