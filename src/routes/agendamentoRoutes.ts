@@ -1,16 +1,11 @@
-import express from 'express';
-import {
-	atualizarStatusAgendamento,
-	criarNovoAgendamento,
-	deletarAgendamentosAntigos,
-	listarTodosAgendamentos,
-} from "../controllers/agendamentoController";
+import { Router } from 'express';
+import { AgendamentoController } from '../controllers/agendamentoController';
 
-const router = express.Router();
+const router = Router();
 
-router.post("/agendamentos", listarTodosAgendamentos);
-router.post("/agendamentos", criarNovoAgendamento);
-router.post("/agendamentos/:id/status", atualizarStatusAgendamento);
-router.post("/agendamentos/antigos", deletarAgendamentosAntigos);
+router.post('/agendamentos', AgendamentoController.criarAgendamento);
+router.patch('/agendamentos/:id/status', AgendamentoController.alterarStatus);
+router.get('/agendamentos', AgendamentoController.listarAgendamentos);
+router.delete('/agendamentos/antigos', AgendamentoController.excluirAntigos);
 
 export default router;

@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "target": "ES2020",
     "module": "commonjs",
-    "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
+    "strictPropertyInitialization": false,
+    "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",

@@ -1,27 +1,47 @@
 import { Request, Response } from 'express';
-import {
-	listarAgendamentos,
-	removerAgendamentosAntigos,
-} from "../services/agendamentoService";
-import { parseISO } from "date-fns";
+import { AgendamentoService } from '../services/agendamentoService';
+import { StatusAgendamento } from '../models/agendamento';
 
-export const criarNovoAgendamento = (req: Request, res: Response) => {};
+export class AgendamentoController {
+	static async criarAgendamento(req: Request, res: Response) {
+		try {
+			const novo = await AgendamentoService.criarAgendamento(req.body);
+			res.status(201).json(novo);
+		} catch (e: any) {
+			res.status(400).json({ error: e.message });
+		}
+	}
 
-export const atualizarStatusAgendamento = (req: Request, res: Response) => {};
+	static async alterarStatus(req: Request, res: Response) {
+		try {
+			const { status } = req.body;
+			const atualizado = await AgendamentoService.alterarStatus(req.params.id, status);
+			res.json(atualizado);
+		} catch (e: any) {
+			res.status(400).json({ error: e.message });
+		}
+	}
 
-export const listarTodosAgendamentos = (req, res) => {
-	var d = req.query.data;
-	var s = req.query.status;
-	var m = req.query.motoristaCpf;
+	static async listarAgendamentos(req: Request, res: Response) {
+		try {
+			const { data, status, motoristaCpf } = req.query;
+			const lista = await AgendamentoService.listarAgendamentos({
+				data: data as string | undefined,
+				status: status as StatusAgendamento | undefined,
+				motoristaCpf: motoristaCpf as string | undefined,
+			});
+			res.json(lista);
+		} catch (e: any) {
+			res.status(400).json({ error: e.message });
+		}
+	}
 
-	let df: Date | undefined = undefined;
-	if (d) df = parseISO(d as string);
-
-	const a = listarAgendamentos(df, s, m);
-	res.status(200).json(a);
-};
-
-export const deletarAgendamentosAntigos = (req: Request, res: Response) => {
-	removerAgendamentosAntigos();
-	res.status(204).send("Agendamentos com mais de 3 dias foram removidos");
-};
+	static async excluirAntigos(req: Request, res: Response) {
+		try {
+			const removidos = await AgendamentoService.excluirAntigos();
+			res.json({ message: `Agendamentos com mais de 3 dias foram removidos (${removidos})` });
+		} catch (e: any) {
+			res.status(400).json({ error: e.message });
+		}
+	}
+}
