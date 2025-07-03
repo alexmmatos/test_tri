@@ -1,9 +1,4 @@
-import {
-	criarAgendamento,
-	alterarStatus,
-	listarAgendamentos,
-	removerAgendamentosAntigos,
-} from "../services/agendamentoService";
+import { AgendamentoService } from "../services/agendamentoService";
 import { Agendamento, StatusAgendamento } from "../models/agendamento";
 import { addDays } from "date-fns";
 
@@ -23,60 +18,60 @@ describe("Agendamento Service", () => {
 		};
 	});
 
-	it("Deve criar um novo agendamento", () => {
-		const novoAgendamento = criarAgendamento(agendamento);
+	it("Deve criar um novo agendamento", async () => {
+		const novoAgendamento = await AgendamentoService.criarAgendamento(agendamento);
 		expect(novoAgendamento).toEqual(agendamento);
 	});
 
-	it("Não deve permitir agendamento se o motorista tem um agendamento pendente ou atrasado", () => {
-		criarAgendamento(agendamento);
+	it("Não deve permitir agendamento se o motorista tem um agendamento pendente ou atrasado", async () => {
+		await AgendamentoService.criarAgendamento(agendamento);
 		const novoAgendamento = { ...agendamento, id: "2" };
-		expect(() => criarAgendamento(novoAgendamento)).toThrow(
+		expect(async () => await AgendamentoService.criarAgendamento(novoAgendamento)).toThrow(
 			"Conflito de agendamento"
 		);
 	});
 
-	it("Não deve permitir agendamento de dois motoristas no mesmo horário", () => {
-		criarAgendamento(agendamento);
+	it("Não deve permitir agendamento de dois motoristas no mesmo horário", async() => {
+		await AgendamentoService.criarAgendamento(agendamento);
 		const outroAgendamento = {
 			...agendamento,
 			id: "2",
 			motoristaCpf: "98765432100",
 		};
-		expect(() => criarAgendamento(outroAgendamento)).toThrow(
+		expect(async () => await AgendamentoService.criarAgendamento(outroAgendamento)).toThrow(
 			"Conflito de agendamento"
 		);
 	});
 
-	it("Deve alterar o status de um agendamento", () => {
-		criarAgendamento(agendamento);
-		const atualizado = alterarStatus(agendamento.id, "concluido");
-		expect(atualizado.status).toBe("concluido");
+	it("Deve alterar o status de um agendamento", async () => {
+		await AgendamentoService.criarAgendamento(agendamento);
+		const atualizado = await AgendamentoService.alterarStatus(agendamento.id, StatusAgendamento.CONCLUIDO);
+		expect(atualizado.status).toBe(StatusAgendamento.CONCLUIDO);
 	});
 
-	it("Não deve permitir cancelar um agendamento concluído", () => {
-		criarAgendamento(agendamento);
-		alterarStatus(agendamento.id, "concluido");
-		expect(() => alterarStatus(agendamento.id, "cancelado")).toThrow(
+	it("Não deve permitir cancelar um agendamento concluído", async () => {
+		await AgendamentoService.criarAgendamento(agendamento);
+		await AgendamentoService.alterarStatus(agendamento.id, StatusAgendamento.CONCLUIDO);
+		expect(async () => await AgendamentoService.alterarStatus(agendamento.id, StatusAgendamento.CANCELADO)).toThrow(
 			"Não é possível cancelar um agendamento já concluído"
 		);
 	});
 
-	it("Não deve permitir alterar um agendamento cancelado", () => {
-		criarAgendamento(agendamento);
-		alterarStatus(agendamento.id, "cancelado");
-		expect(() => alterarStatus(agendamento.id, "concluido")).toThrow(
+	it("Não deve permitir alterar um agendamento cancelado", async () => {
+		await AgendamentoService.criarAgendamento(agendamento);
+		await AgendamentoService.alterarStatus(agendamento.id, StatusAgendamento.CANCELADO);
+		expect(async () => await AgendamentoService.alterarStatus(agendamento.id, StatusAgendamento.CONCLUIDO)).toThrow(
 			"Não é possível alterar um agendamento cancelado"
 		);
 	});
 });
 
-describe("Agendamento Service - Filtros", () => {
+describe("Agendamento Service - Filtros", async () => {
 	let agendamento1: Agendamento;
 	let agendamento2: Agendamento;
 	let agendamento3: Agendamento;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -110,60 +105,56 @@ describe("Agendamento Service - Filtros", () => {
 			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
-		criarAgendamento(agendamento1);
-		criarAgendamento(agendamento2);
-		criarAgendamento(agendamento3);
+		await AgendamentoService.criarAgendamento(agendamento1);
+		await AgendamentoService.criarAgendamento(agendamento2);
+		await AgendamentoService.criarAgendamento(agendamento3);
 	});
 
-	it("Deve listar todos os agendamentos sem filtro", () => {
-		const agendamentos = listarAgendamentos();
+	it("Deve listar todos os agendamentos sem filtro", async () => {
+		const agendamentos = await AgendamentoService.listarAgendamentos({});
 		expect(agendamentos.length).toBe(3);
 	});
 
-	it("Deve filtrar agendamentos por dia específico", () => {
-		const agendamentos = listarAgendamentos(new Date("2024-09-15"));
+	it("Deve filtrar agendamentos por dia específico", async () => {
+		const agendamentos = await AgendamentoService.listarAgendamentos({data: "2024-09-15"});
 		expect(agendamentos.length).toBe(1);
 		expect(agendamentos[0].id).toBe("1");
 	});
 
-	it("Deve filtrar agendamentos por status", () => {
-		const agendamentosPendente = listarAgendamentos(undefined, "pendente");
+	it("Deve filtrar agendamentos por status", async () => {
+		const agendamentosPendente = await AgendamentoService.listarAgendamentos({status:StatusAgendamento.PENDENTE});
 		expect(agendamentosPendente.length).toBe(1);
 		expect(agendamentosPendente[0].status).toBe("pendente");
 
-		const agendamentosConcluido = listarAgendamentos(undefined, "concluido");
+		const agendamentosConcluido = await AgendamentoService.listarAgendamentos({status:StatusAgendamento.CONCLUIDO});
 		expect(agendamentosConcluido.length).toBe(1);
 		expect(agendamentosConcluido[0].status).toBe("concluido");
 	});
 
-	it("Deve filtrar agendamentos por motorista (CPF)", () => {
-		const agendamentosMotorista = listarAgendamentos(
-			undefined,
-			undefined,
-			"12345678900"
-		);
+	it("Deve filtrar agendamentos por motorista (CPF)", async () => {
+		const agendamentosMotorista = await AgendamentoService.listarAgendamentos({motoristaCpf: "12345678900"});
 		expect(agendamentosMotorista.length).toBe(2);
 		expect(agendamentosMotorista[0].motoristaCpf).toBe("12345678900");
 		expect(agendamentosMotorista[1].motoristaCpf).toBe("12345678900");
 	});
 
-	it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", () => {
-		const agendamentos = listarAgendamentos(
-			new Date("2024-09-17"),
-			"atrasado",
-			"12345678900"
-		);
+	it("Deve filtrar agendamentos por dia, status e motorista ao mesmo tempo", async () => {
+		const agendamentos = await AgendamentoService.listarAgendamentos({
+			data: "2024-09-17",
+			status:StatusAgendamento.ATRASADO,
+			motoristaCpf: "12345678900"
+		});
 		expect(agendamentos.length).toBe(1);
 		expect(agendamentos[0].id).toBe("3");
 	});
 });
 
-describe("Agendamento Service - Remover Agendamentos Antigos", () => {
+describe("Agendamento Service - Remover Agendamentos Antigos", async () => {
 	let agendamento1: Agendamento;
 	let agendamento2: Agendamento;
 	let agendamento3: Agendamento;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		agendamento1 = {
 			id: "1",
 			motoristaNome: "João",
@@ -197,14 +188,14 @@ describe("Agendamento Service - Remover Agendamentos Antigos", () => {
 			createdAt: new Date("2024-09-15T10:00:00Z"),
 		};
 
-		criarAgendamento(agendamento1);
-		criarAgendamento(agendamento2);
-		criarAgendamento(agendamento3);
+		await AgendamentoService.criarAgendamento(agendamento1);
+		await AgendamentoService.criarAgendamento(agendamento2);
+		await AgendamentoService.criarAgendamento(agendamento3);
 	});
 
-	it("Deve remover agendamentos com mais de 3 dias", () => {
-		removerAgendamentosAntigos();
-		const agendamentos = listarAgendamentos();
+	it("Deve remover agendamentos com mais de 3 dias", async () => {
+		await AgendamentoService.removerAgendamentosAntigos();
+		const agendamentos = await AgendamentoService.listarAgendamentos({});
 
 		expect(agendamentos.length).toBe(2); // Apenas dois agendamentos devem restar
 		expect(agendamentos.find((a) => a.id === "1")).toBeUndefined(); // Agendamento com 4 dias foi removido
