@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+dist
+tmp
+.DS_Store
+.git
+src/tests
+README _old.md 
