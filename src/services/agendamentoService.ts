@@ -1,6 +1,6 @@
 import { AppDatabase } from "../database";
 import { Agendamento, StatusAgendamento } from "../models/agendamento";
-import { subDays } from "date-fns";
+import { subDays, parse } from "date-fns";
 import { Repository, In, Between } from "typeorm";
 
 export class AgendamentoService {
@@ -31,7 +31,7 @@ export class AgendamentoService {
 		if (motoristaOcupado) {
 			throw new Error("Motorista já possui agendamento pendente ou atrasado.");
 		}
-		const novo = this.repo.create({ ...dados, status: StatusAgendamento.PENDENTE });
+		const novo = this.repo.create({ ...dados });
 		await this.repo.save(novo);
 		return novo;
 	}
@@ -48,26 +48,32 @@ export class AgendamentoService {
 
 	public async listarAgendamentos(filtros: { data?: string; status?: StatusAgendamento; motoristaCpf?: string }): Promise<Agendamento[]> {
 		const where: any = {};
-		if (filtros.status) where.status = filtros.status;
-		if (filtros.motoristaCpf) where.motoristaCpf = filtros.motoristaCpf;
-
-		if (filtros.data) {
-			const dataFiltro = new Date(filtros.data);
-			const startOfDay = new Date(dataFiltro);
-			startOfDay.setHours(0, 0, 0, 0);
-			const endOfDay = new Date(dataFiltro);
-			endOfDay.setHours(23, 59, 59, 999);
-			where.dataHora = Between(startOfDay, endOfDay);
+		if (filtros.status) { 
+			where.status = filtros.status;
+		}
+		if (filtros.motoristaCpf) { 
+			where.motoristaCpf = filtros.motoristaCpf;
 		}
 
 		let agendamentos = await this.repo.find({ where });
+		
+		if (filtros.data) {
+			const dataFiltro = parse(filtros.data, "yyyy-MM-dd", new Date());
+			agendamentos = agendamentos.filter((a: Agendamento) => {
+				const dataAgendamento = new Date(a.dataHora);
+				return dataAgendamento.getFullYear() === dataFiltro.getFullYear() &&
+					dataAgendamento.getMonth() === dataFiltro.getMonth() &&
+					dataAgendamento.getDate() === dataFiltro.getDate();
+			});
+		}
 
 		return agendamentos;
 	}
 
 	public async removerAgendamentosAntigos(): Promise<number> {
+		const todos = await this.repo.find();
 		const limite = subDays(new Date(), 3);
-		const antigos = await this.repo.find({ where: { createdAt: { $lt: limite } } as any });
+		const antigos = todos.filter(a => a.dataHora < limite);
 		await this.repo.remove(antigos);
 		return antigos.length;
 	}
