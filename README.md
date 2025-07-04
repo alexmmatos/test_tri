@@ -23,3 +23,7 @@ npm run test
 ```
 
 Obs.: O funcionamento da API encontra-se completamente documentado ao rodar o projeto e acessar http://localhost:3000/api-docs/
+
+![Swagger API](https://github.com/alexmmatos/test_tri/blob/main/screenshots/swagger.png?raw=true)
+
+![Suite de Testes](https://github.com/alexmmatos/test_tri/blob/main/screenshots/tests.png?raw=true)
