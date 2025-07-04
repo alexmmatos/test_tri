@@ -12,6 +12,11 @@ Obs.: A depender da demanda de requisições do projeto o correto seria separar 
 docker compose up --build
 ```
 
+Obs.: O funcionamento da API encontra-se completamente documentado ao rodar o projeto e acessar http://localhost:3000/api-docs/
+
+![Swagger API](https://github.com/alexmmatos/test_tri/blob/main/screenshots/swagger.png?raw=true)
+
+
 ## Para instalar as dependencias do projeto utilize o comando: 
 ```bash
 npm install
@@ -21,9 +26,5 @@ npm install
 ```bash
 npm run test
 ```
-
-Obs.: O funcionamento da API encontra-se completamente documentado ao rodar o projeto e acessar http://localhost:3000/api-docs/
-
-![Swagger API](https://github.com/alexmmatos/test_tri/blob/main/screenshots/swagger.png?raw=true)
 
 ![Suite de Testes](https://github.com/alexmmatos/test_tri/blob/main/screenshots/tests.png?raw=true)
